@@ -27,7 +27,23 @@ export default function Flashcards() {
 
   const card = cards[index];
 
-  const next = () => {
+  const next = async () => {
+    // Award XP for reviewing this card, and update the user's streak
+    const storedUser = JSON.parse(localStorage.getItem('gamefind_user') || 'null');
+    if (storedUser) {
+      try {
+        const res = await fetch(`${API_URL}/users/${storedUser.id}/activity`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: 10, reason: 'flashcard_reviewed' })
+        });
+        const updatedUser = await res.json();
+        localStorage.setItem('gamefind_user', JSON.stringify(updatedUser));
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
     setFlipped(false);
     setIndex((index + 1) % cards.length);
   };
@@ -71,7 +87,7 @@ export default function Flashcards() {
           cursor: 'pointer'
         }}
       >
-        Next Card →
+        Next Card → (+10 XP)
       </button>
     </div>
   );
